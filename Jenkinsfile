@@ -2,25 +2,48 @@ pipeline {
     agent any
     parameters {
         choice(name: 'CONTAINER_NAME', choices: [
-            'lscr.io/linuxserver/lidarr',
-            'ghcr.io/gethomepage/homepage',
+            'lidarr',
+            'homepage',
             'meetingsdk-headless-linux-sample-zoomsdk',
-            'ghcr.io/hotio/readarr',
-            'ghcr.io/hotio/bazarr',
-            'lscr.io/linuxserver/prowlarr',
-            'ghcr.io/hotio/prowlarr',
-            'linuxserver/sonarr',
-            'lscr.io/linuxserver/sonarr',
-            'linuxserver/radarr',
+            'readarr',
+            'bazarr',
+            'prowlarr',
+            'prowlarr-hotio',
+            'sonarr',
+            'sonarr-linuxserver',
+            'radarr',
             'hello-world',
-            'qbittorrentofficial/qbittorrent-nox',
-            'ghcr.io/flaresolverr/flaresolverr'
+            'qbittorrent-nox',
+            'flaresolverr'
         ], description: 'Select a container to update')
     }
     stages {
+        stage('Retrieve Repository') {
+            steps {
+                script {
+                    def repoMap = [
+                        'lidarr': 'lscr.io/linuxserver/lidarr',
+                        'homepage': 'ghcr.io/gethomepage/homepage',
+                        'meetingsdk-headless-linux-sample-zoomsdk': 'meetingsdk-headless-linux-sample-zoomsdk',
+                        'readarr': 'ghcr.io/hotio/readarr',
+                        'bazarr': 'ghcr.io/hotio/bazarr',
+                        'prowlarr': 'lscr.io/linuxserver/prowlarr',
+                        'prowlarr-hotio': 'ghcr.io/hotio/prowlarr',
+                        'sonarr': 'linuxserver/sonarr',
+                        'sonarr-linuxserver': 'lscr.io/linuxserver/sonarr',
+                        'radarr': 'linuxserver/radarr',
+                        'hello-world': 'hello-world',
+                        'qbittorrent-nox': 'qbittorrentofficial/qbittorrent-nox',
+                        'flaresolverr': 'ghcr.io/flaresolverr/flaresolverr'
+                    ]
+                    env.REPO_NAME = repoMap[CONTAINER_NAME]
+                    echo "Updating ${CONTAINER_NAME} with repository ${env.REPO_NAME}"
+                }
+            }
+        }
         stage('Pull Latest Image') {
             steps {
-                sh "docker pull ${CONTAINER_NAME}:latest"
+                sh "docker pull ${REPO_NAME}:latest"
             }
         }
         stage('Stop and Remove Existing Container') {
@@ -34,7 +57,7 @@ pipeline {
         stage('Start New Container') {
             steps {
                 sh """
-                    docker run -d --name ${CONTAINER_NAME} ${CONTAINER_NAME}:latest
+                    docker run -d --name ${CONTAINER_NAME} ${REPO_NAME}:latest
                 """
             }
         }
