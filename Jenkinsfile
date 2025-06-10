@@ -7,7 +7,7 @@ pipeline {
         stage('Retrieve Repository') {
             steps {
                 script {
-                    node {
+                    node('docker-agent') { // Specify your Jenkins agent
                         env.REPO_NAME = sh(
                             script: "docker ps --format '{{.Image}} {{.Names}}' | grep ${CONTAINER_NAME} | awk '{print \$1}'",
                             returnStdout: true
@@ -19,14 +19,14 @@ pipeline {
         }
         stage('Pull Latest Image') {
             steps {
-                node {
+                node('docker-agent') { // Ensure it runs on a proper node
                     sh "docker pull ${REPO_NAME}:latest"
                 }
             }
         }
         stage('Stop and Remove Existing Container') {
             steps {
-                node {
+                node('docker-agent') {
                     sh """
                         docker stop ${CONTAINER_NAME} || true
                         docker rm ${CONTAINER_NAME} || true
@@ -36,7 +36,7 @@ pipeline {
         }
         stage('Start New Container') {
             steps {
-                node {
+                node('docker-agent') {
                     sh """
                         docker run -d --name ${CONTAINER_NAME} ${REPO_NAME}:latest
                     """
