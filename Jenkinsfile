@@ -9,7 +9,7 @@ def getContainerList() {
 
 def getRepository(containerName) {
     def repo = sh(
-        script: "docker ps --format '{{.Image}} {{.Names}}' | grep ${containerName} | awk '{print $1}'",
+        script: "docker ps --format '{{.Image}} {{.Names}}' | grep ${containerName} | awk '{print \$1}'",
         returnStdout: true
     ).trim()
     return repo
