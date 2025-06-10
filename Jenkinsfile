@@ -1,12 +1,23 @@
 pipeline {
     agent any
     environment {
-        CONTAINER_LIST = sh(script: "docker ps --format '{{.Names}}' | tr '\\n' ','", returnStdout: true).trim()
+        CONTAINER_LIST = sh(script: "docker ps --format '{{.Names}}'", returnStdout: true).trim()
     }
     parameters {
-        choice(name: 'CONTAINER_NAME', choices: CONTAINER_LIST.split(","), description: 'Select a container to update')
+        choice(name: 'CONTAINER_NAME', choices: ['Loading...'], description: 'Select a container to update')
     }
     stages {
+        stage('Prepare Choice Parameter') {
+            steps {
+                script {
+                    def containerNames = sh(script: "docker ps --format '{{.Names}}'", returnStdout: true).trim().split("\n")
+                    def containerChoices = containerNames.join("\n") // Format correctly
+                    currentBuild.rawBuild.getAction(ParametersAction.class)
+                        .getParameter('CONTAINER_NAME')
+                        .defaultValue = containerChoices
+                }
+            }
+        }
         stage('Retrieve Repository') {
             steps {
                 script {
