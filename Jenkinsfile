@@ -1,25 +1,26 @@
 pipeline {
     agent any
     parameters {
-        activeChoice(name: 'CONTAINER_NAME', type: 'single-select', script: '''
-            return sh(script: "docker ps --format '{{.Names}}'", returnStdout: true).trim().split("\\n")
-        ''')
+        choice(name: 'CONTAINER_NAME', choices: [
+            'lscr.io/linuxserver/lidarr',
+            'ghcr.io/gethomepage/homepage',
+            'meetingsdk-headless-linux-sample-zoomsdk',
+            'ghcr.io/hotio/readarr',
+            'ghcr.io/hotio/bazarr',
+            'lscr.io/linuxserver/prowlarr',
+            'ghcr.io/hotio/prowlarr',
+            'linuxserver/sonarr',
+            'lscr.io/linuxserver/sonarr',
+            'linuxserver/radarr',
+            'hello-world',
+            'qbittorrentofficial/qbittorrent-nox',
+            'ghcr.io/flaresolverr/flaresolverr'
+        ], description: 'Select a container to update')
     }
     stages {
-        stage('Retrieve Repository') {
-            steps {
-                script {
-                    env.REPO_NAME = sh(
-                        script: "docker ps --format '{{.Image}} {{.Names}}' | grep ${CONTAINER_NAME} | awk '{print \$1}'",
-                        returnStdout: true
-                    ).trim()
-                    echo "Updating container ${CONTAINER_NAME} with repository ${REPO_NAME}"
-                }
-            }
-        }
         stage('Pull Latest Image') {
             steps {
-                sh "docker pull ${REPO_NAME}:latest"
+                sh "docker pull ${CONTAINER_NAME}:latest"
             }
         }
         stage('Stop and Remove Existing Container') {
@@ -33,7 +34,7 @@ pipeline {
         stage('Start New Container') {
             steps {
                 sh """
-                    docker run -d --name ${CONTAINER_NAME} ${REPO_NAME}:latest
+                    docker run -d --name ${CONTAINER_NAME} ${CONTAINER_NAME}:latest
                 """
             }
         }
