@@ -1,7 +1,10 @@
 pipeline {
     agent any
+    environment {
+        CONTAINER_LIST = sh(script: "docker ps --format '{{.Names}}' | tr '\\n' ','", returnStdout: true).trim()
+    }
     parameters {
-        choice(name: 'CONTAINER_NAME', choices: sh(script: "docker ps --format '{{.Names}}' | tr '\\n' ','", returnStdout: true).trim().split(","), description: 'Select a container to update')
+        choice(name: 'CONTAINER_NAME', choices: CONTAINER_LIST.split(","), description: 'Select a container to update')
     }
     stages {
         stage('Retrieve Repository') {
